@@ -241,11 +241,31 @@
       </div>
 
       <div id="group-round-end-view" class="screen-body screen-body--center" hidden>
-        <p class="done-heading">Round complete. Go again?</p>
+        <p id="group-round-label" class="phase-label">Round 1 complete</p>
+        <div class="round-winner-row">
+          <svg id="group-round-winner-icon" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true" hidden><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          <p id="group-round-winner-name" class="done-heading"></p>
+        </div>
+
+        <div id="group-round-leaderboard" class="leaderboard" role="list" aria-label="Overall standings"></div>
+
+        <p class="rating-hint">Go again?</p>
         <div class="timer-controls">
           <button id="group-again" class="btn btn--primary" type="button">Start another round</button>
           <button id="group-end" class="btn btn--ghost" type="button">End session</button>
         </div>
+      </div>
+
+      <div id="group-summary-view" class="screen-body screen-body--center" hidden>
+        <p class="phase-label">Final results</p>
+        <div class="round-winner-row">
+          <svg id="group-summary-winner-icon" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true" hidden><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+          <p id="group-summary-winner-name" class="done-heading"></p>
+        </div>
+
+        <div id="group-summary-leaderboard" class="leaderboard" role="list" aria-label="Final standings"></div>
+
+        <button id="group-summary-done" class="btn btn--primary btn--large" type="button">Done</button>
       </div>
     </div>
   </section>

@@ -33,10 +33,13 @@ const group = {
   active: false,
   currentTopic: null,
   turnPhase: "pre", // pre | prep | prepDone | speak
-  rateUpCount: 0,
-  rateDownCount: 0,
+  stats: {}, // { [participantId]: { up, down } } cumulative across the whole session
+  roundStats: {}, // { [participantId]: { up, down } } current round only
   timer: null
 };
+
+const TROPHY_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>';
 
 // ---------- DOM refs ----------
 
@@ -107,8 +110,17 @@ const groupRateUpCountEl = el("group-rate-up-count");
 const groupRateDownCountEl = el("group-rate-down-count");
 const groupNextBtn = el("group-next");
 const groupRoundEndView = el("group-round-end-view");
+const groupRoundLabel = el("group-round-label");
+const groupRoundWinnerIcon = el("group-round-winner-icon");
+const groupRoundWinnerName = el("group-round-winner-name");
+const groupRoundLeaderboard = el("group-round-leaderboard");
 const groupAgainBtn = el("group-again");
 const groupEndBtn = el("group-end");
+const groupSummaryView = el("group-summary-view");
+const groupSummaryWinnerIcon = el("group-summary-winner-icon");
+const groupSummaryWinnerName = el("group-summary-winner-name");
+const groupSummaryLeaderboard = el("group-summary-leaderboard");
+const groupSummaryDoneBtn = el("group-summary-done");
 
 const prepMinInput = el("settings-prep-min");
 const prepSecInput = el("settings-prep-sec");
@@ -221,13 +233,18 @@ async function handleBack() {
     if (!ok) return;
     endSoloTimer();
   }
-  if (currentScreen === "group" && isGroupSessionActive()) {
-    const ok = await confirmAction({
-      title: "Leave this session?",
-      body: "Your group session is in progress. Going back will end it."
-    });
-    if (!ok) return;
-    abandonGroupSession();
+  if (currentScreen === "group") {
+    if (isGroupSessionActive()) {
+      const ok = await confirmAction({
+        title: "Leave this session?",
+        body: "Your group session is in progress. Going back will end it."
+      });
+      if (!ok) return;
+      abandonGroupSession();
+    } else if (!groupSummaryView.hidden) {
+      // Session already ended, just viewing results — nothing to lose, no confirmation needed.
+      finishGroupSession();
+    }
   }
   goHome();
 }
@@ -540,6 +557,74 @@ function moveParticipant(id, direction) {
   renderParticipantList();
 }
 
+// ---------- Group mode: ranking ----------
+
+function ensureStatsEntry(store, id) {
+  if (!store[id]) store[id] = { up: 0, down: 0 };
+  return store[id];
+}
+
+function resetRoundStats() {
+  group.roundStats = {};
+  group.order.forEach((p) => ensureStatsEntry(group.roundStats, p.id));
+}
+
+function buildLeaderboard(roster, statsStore) {
+  return roster
+    .map((p, idx) => {
+      const s = statsStore[p.id] || { up: 0, down: 0 };
+      return { id: p.id, name: p.name, up: s.up, down: s.down, net: s.up - s.down, idx };
+    })
+    .sort((a, b) => b.net - a.net || b.up - a.up || a.idx - b.idx);
+}
+
+// Names of whoever is tied for the top score, or null if everyone is tied (no clear leader).
+function leaderNames(entries) {
+  if (entries.length === 0) return null;
+  if (entries.length === 1) return entries[0].name;
+  const topScore = entries[0].net;
+  const leaders = entries.filter((e) => e.net === topScore);
+  if (leaders.length === entries.length) return null;
+  return leaders.map((e) => e.name).join(" & ");
+}
+
+function renderLeaderboard(container, entries) {
+  container.innerHTML = "";
+  if (entries.length === 0) return;
+  const topScore = entries[0].net;
+  entries.forEach((entry, i) => {
+    const isLeader = entry.net === topScore;
+    const row = document.createElement("div");
+    row.className = "leaderboard-row" + (isLeader ? " leaderboard-row--leader" : "");
+    row.setAttribute("role", "listitem");
+
+    const rank = document.createElement("span");
+    rank.className = "leaderboard-rank";
+    if (isLeader) {
+      rank.innerHTML = TROPHY_ICON;
+    } else {
+      rank.textContent = String(i + 1);
+    }
+
+    const info = document.createElement("div");
+    info.className = "leaderboard-info";
+    const name = document.createElement("span");
+    name.className = "leaderboard-name";
+    name.textContent = entry.name;
+    const detail = document.createElement("span");
+    detail.className = "leaderboard-detail";
+    detail.textContent = entry.up + " up · " + entry.down + " down";
+    info.append(name, detail);
+
+    const score = document.createElement("span");
+    score.className = "leaderboard-score";
+    score.textContent = (entry.net > 0 ? "+" : "") + entry.net;
+
+    row.append(rank, info, score);
+    container.appendChild(row);
+  });
+}
+
 // ---------- Group mode: session ----------
 
 function showGroupSubview(name) {
@@ -548,12 +633,29 @@ function showGroupSubview(name) {
   groupTimerView.hidden = name !== "timer";
   groupNextView.hidden = name !== "next";
   groupRoundEndView.hidden = name !== "roundEnd";
-  groupUpNowBlock.hidden = name === "roundEnd";
+  groupSummaryView.hidden = name !== "summary";
+  groupUpNowBlock.hidden = name === "roundEnd" || name === "summary";
+}
+
+function showRoundEnd() {
+  groupRoundLabel.textContent = "Round " + group.round + " complete";
+
+  const roundEntries = buildLeaderboard(group.order, group.roundStats);
+  const roundWinnerNames = leaderNames(roundEntries);
+  groupRoundWinnerIcon.hidden = !roundWinnerNames;
+  groupRoundWinnerName.textContent = roundWinnerNames
+    ? roundWinnerNames + " won this round"
+    : "This round was a tie";
+
+  const overallEntries = buildLeaderboard(group.order, group.stats);
+  renderLeaderboard(groupRoundLeaderboard, overallEntries);
+
+  showGroupSubview("roundEnd");
 }
 
 function beginTurn() {
   if (group.currentIndex >= group.order.length) {
-    showGroupSubview("roundEnd");
+    showRoundEnd();
     return;
   }
   const participant = group.order[group.currentIndex];
@@ -581,7 +683,7 @@ function onGroupTimerComplete() {
     WaggleAudio.playSpeakEnd();
     const participant = group.order[group.currentIndex];
     groupTurnDoneName.textContent = participant.name + " is done.";
-    resetGroupRatingCounts();
+    showCurrentRatingCounts();
     showGroupSubview("next");
   }
 }
@@ -596,11 +698,11 @@ function beginGroupSpeakPhase() {
   group.timer.start();
 }
 
-function resetGroupRatingCounts() {
-  group.rateUpCount = 0;
-  group.rateDownCount = 0;
-  groupRateUpCountEl.textContent = "0";
-  groupRateDownCountEl.textContent = "0";
+function showCurrentRatingCounts() {
+  const id = group.order[group.currentIndex].id;
+  const s = ensureStatsEntry(group.roundStats, id);
+  groupRateUpCountEl.textContent = String(s.up);
+  groupRateDownCountEl.textContent = String(s.down);
 }
 
 function startGroupTurnTimer() {
@@ -651,6 +753,7 @@ function advanceParticipant() {
 function startAnotherRound() {
   group.round += 1;
   group.currentIndex = 0;
+  resetRoundStats();
   beginTurn();
 }
 
@@ -659,6 +762,9 @@ function startGroupSession() {
   group.currentIndex = 0;
   group.round = 1;
   group.active = true;
+  group.stats = {};
+  group.order.forEach((p) => ensureStatsEntry(group.stats, p.id));
+  resetRoundStats();
   groupSetup.hidden = true;
   groupSessionView.hidden = false;
   beginTurn();
@@ -667,6 +773,22 @@ function startGroupSession() {
 function endGroupSession() {
   if (group.timer) group.timer.stop();
   group.active = false;
+  showFinalSummary();
+}
+
+function showFinalSummary() {
+  const entries = buildLeaderboard(group.order, group.stats);
+  const winnerNames = leaderNames(entries);
+  groupSummaryWinnerIcon.hidden = !winnerNames;
+  groupSummaryWinnerName.textContent = winnerNames ? winnerNames + " had the most" : "Nobody edged out — it's a tie";
+  renderLeaderboard(groupSummaryLeaderboard, entries);
+  showGroupSubview("summary");
+}
+
+// Returns Group to its setup screen (same roster, ready for a new session).
+// Used by the summary screen's "Done" button and by the silent back-navigation
+// path once a session has already ended (no confirmation needed there).
+function finishGroupSession() {
   group.currentIndex = 0;
   group.round = 1;
   groupSessionView.hidden = true;
@@ -677,10 +799,7 @@ function endGroupSession() {
 function abandonGroupSession() {
   if (group.timer) group.timer.stop();
   group.active = false;
-  group.currentIndex = 0;
-  group.round = 1;
-  groupSessionView.hidden = true;
-  groupSetup.hidden = false;
+  finishGroupSession();
 }
 
 // ---------- Wiring ----------
@@ -741,16 +860,21 @@ function wireEvents() {
   groupPauseBtn.addEventListener("click", pauseResumeGroup);
   groupResetBtn.addEventListener("click", resetGroupTimer);
   groupRateUpBtn.addEventListener("click", () => {
-    group.rateUpCount += 1;
-    groupRateUpCountEl.textContent = String(group.rateUpCount);
+    const id = group.order[group.currentIndex].id;
+    ensureStatsEntry(group.roundStats, id).up += 1;
+    ensureStatsEntry(group.stats, id).up += 1;
+    groupRateUpCountEl.textContent = String(group.roundStats[id].up);
   });
   groupRateDownBtn.addEventListener("click", () => {
-    group.rateDownCount += 1;
-    groupRateDownCountEl.textContent = String(group.rateDownCount);
+    const id = group.order[group.currentIndex].id;
+    ensureStatsEntry(group.roundStats, id).down += 1;
+    ensureStatsEntry(group.stats, id).down += 1;
+    groupRateDownCountEl.textContent = String(group.roundStats[id].down);
   });
   groupNextBtn.addEventListener("click", advanceParticipant);
   groupAgainBtn.addEventListener("click", startAnotherRound);
   groupEndBtn.addEventListener("click", endGroupSession);
+  groupSummaryDoneBtn.addEventListener("click", finishGroupSession);
 
   // Settings
   [prepMinInput, prepSecInput, speakMinInput, speakSecInput].forEach((input) =>
