@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Waggle</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ HOME ============ -->
+  <section id="screen-home" class="screen active" aria-label="Home">
+    <button
+      id="btn-settings"
+      class="icon-btn icon-btn--corner"
+      type="button"
+      aria-label="Settings"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+
+    <div class="home-brand">
+      <div class="home-logo" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none" stroke="var(--yellow)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M24 6c-7 0-10 5-10 10 0 6 5 8 5 14a5 5 0 0 0 10 0c0-6 5-8 5-14 0-5-3-10-10-10Z"/>
+          <circle cx="20" cy="18" r="1.6" fill="var(--yellow)" stroke="none"/>
+          <circle cx="28" cy="18" r="1.6" fill="var(--yellow)" stroke="none"/>
+          <path d="M14 20c-4-1-8 1-9 4M34 20c4-1 8 1 9 4" />
+        </svg>
+      </div>
+      <h1 class="home-title">Waggle</h1>
+      <p class="home-tagline">Topics to speak, journal, and think through.</p>
+    </div>
+
+    <div class="home-choices">
+      <button id="btn-solo" class="mode-btn" type="button">
+        <svg class="mode-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span class="mode-btn__label">Solo</span>
+        <span class="mode-btn__desc">Speak or journal on your own</span>
+      </button>
+      <button id="btn-group" class="mode-btn" type="button">
+        <svg class="mode-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span class="mode-btn__label">Group</span>
+        <span class="mode-btn__desc">Take turns in a room together</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ SOLO ============ -->
+  <section id="screen-solo" class="screen" aria-label="Solo mode">
+    <header class="screen-header">
+      <button class="icon-btn" type="button" data-back="home" aria-label="Back to home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <h2 class="screen-title">Solo</h2>
+      <span class="screen-header__spacer" aria-hidden="true"></span>
+    </header>
+
+    <!-- setup sub-view -->
+    <div id="solo-setup" class="screen-body">
+      <div class="field-block">
+        <div class="field-block__row">
+          <span class="field-block__label">Categories</span>
+          <div class="field-block__actions">
+            <button id="solo-select-all" class="text-btn" type="button">Select all</button>
+            <button id="solo-clear-all" class="text-btn" type="button">Clear all</button>
+          </div>
+        </div>
+        <div id="solo-categories" class="chip-grid" role="group" aria-label="Topic categories"></div>
+        <p id="solo-no-categories-hint" class="empty-hint" hidden>Select at least one category to generate a topic.</p>
+      </div>
+
+      <div class="topic-card">
+        <p id="solo-topic-text" class="topic-card__text">Generate a topic to get started.</p>
+        <div class="topic-card__actions">
+          <button id="solo-generate" class="btn btn--primary" type="button">Generate topic</button>
+        </div>
+      </div>
+
+      <button id="solo-start" class="btn btn--primary btn--large" type="button" hidden>Start</button>
+    </div>
+
+    <!-- timer sub-view -->
+    <div id="solo-timer-view" class="screen-body screen-body--center" hidden>
+      <p id="solo-phase-label" class="phase-label" aria-live="polite">Get ready</p>
+
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="ring__track" cx="120" cy="120" r="108"></circle>
+          <circle id="solo-ring-progress" class="ring__progress" cx="120" cy="120" r="108"></circle>
+        </svg>
+        <div class="ring__center">
+          <span id="solo-time" class="ring__time">00:00</span>
+        </div>
+      </div>
+
+      <p id="solo-topic-reminder" class="topic-reminder"></p>
+
+      <div class="timer-controls">
+        <button id="solo-pause" class="btn btn--ghost" type="button">Pause</button>
+        <button id="solo-reset" class="btn btn--ghost" type="button">Reset</button>
+        <button id="solo-end" class="btn btn--ghost" type="button">End</button>
+      </div>
+    </div>
+
+    <!-- prep-done pause sub-view -->
+    <div id="solo-prep-done-view" class="screen-body screen-body--center" hidden>
+      <p class="phase-label">Prep done</p>
+      <svg class="done-check" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+      <p id="solo-prep-done-topic" class="topic-reminder"></p>
+      <div class="timer-controls">
+        <button id="solo-begin-speak" class="btn btn--primary btn--large" type="button">Start speaking</button>
+        <button id="solo-prep-done-end" class="btn btn--ghost" type="button">End</button>
+      </div>
+    </div>
+
+    <!-- done sub-view -->
+    <div id="solo-done-view" class="screen-body screen-body--center" hidden>
+      <svg class="done-check" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+      <p class="done-heading">Nice work.</p>
+      <p id="solo-done-topic" class="topic-reminder"></p>
+
+      <div class="rating-row" role="group" aria-label="Rate your performance">
+        <button id="solo-rate-up" class="rating-btn rating-btn--up" type="button" aria-pressed="false" aria-label="Thumbs up">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+        </button>
+        <button id="solo-rate-down" class="rating-btn rating-btn--down" type="button" aria-pressed="false" aria-label="Thumbs down">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3z"></path><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+        </button>
+      </div>
+
+      <div class="timer-controls">
+        <button id="solo-again" class="btn btn--primary" type="button">New topic</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GROUP ============ -->
+  <section id="screen-group" class="screen" aria-label="Group mode">
+    <header class="screen-header">
+      <button class="icon-btn" type="button" data-back="home" aria-label="Back to home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <h2 class="screen-title">Group</h2>
+      <span class="screen-header__spacer" aria-hidden="true"></span>
+    </header>
+
+    <!-- setup sub-view -->
+    <div id="group-setup" class="screen-body">
+      <div class="field-block">
+        <div class="field-block__row">
+          <span class="field-block__label">Categories</span>
+          <div class="field-block__actions">
+            <button id="group-select-all" class="text-btn" type="button">Select all</button>
+            <button id="group-clear-all" class="text-btn" type="button">Clear all</button>
+          </div>
+        </div>
+        <div id="group-categories" class="chip-grid" role="group" aria-label="Topic categories"></div>
+      </div>
+
+      <form id="group-add-form" class="add-participant" autocomplete="off">
+        <label for="group-name-input" class="sr-only">Participant name</label>
+        <input id="group-name-input" class="text-input" type="text" placeholder="Add a participant" maxlength="40" />
+        <button class="btn btn--primary btn--icon" type="submit" aria-label="Add participant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </button>
+      </form>
+
+      <ul id="group-participant-list" class="participant-list" aria-label="Participants"></ul>
+      <p id="group-empty-hint" class="empty-hint">Add at least one participant to start.</p>
+      <p id="group-no-categories-hint" class="empty-hint" hidden>Select at least one category in Settings to start.</p>
+
+      <button id="group-start" class="btn btn--primary btn--large" type="button">Start session</button>
+    </div>
+
+    <!-- session sub-view -->
+    <div id="group-session-view" class="screen-body" hidden>
+      <div id="group-up-now-block">
+        <p class="up-now-label">Up now</p>
+        <p id="group-current-name" class="up-now-name" aria-live="polite"></p>
+      </div>
+
+      <div id="group-pre-turn" class="screen-body screen-body--center">
+        <div class="topic-card">
+          <p id="group-topic-text" class="topic-card__text"></p>
+        </div>
+        <div class="timer-controls">
+          <button id="group-turn-start" class="btn btn--primary btn--large" type="button">Start turn</button>
+          <button id="group-skip" class="btn btn--ghost" type="button">Skip this person</button>
+        </div>
+      </div>
+
+      <div id="group-timer-view" class="screen-body screen-body--center" hidden>
+        <p id="group-phase-label" class="phase-label" aria-live="polite">Get ready</p>
+
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 240 240" aria-hidden="true">
+            <circle class="ring__track" cx="120" cy="120" r="108"></circle>
+            <circle id="group-ring-progress" class="ring__progress" cx="120" cy="120" r="108"></circle>
+          </svg>
+          <div class="ring__center">
+            <span id="group-time" class="ring__time">00:00</span>
+          </div>
+        </div>
+
+        <p id="group-topic-reminder" class="topic-reminder"></p>
+
+        <div class="timer-controls">
+          <button id="group-pause" class="btn btn--ghost" type="button">Pause</button>
+          <button id="group-reset" class="btn btn--ghost" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div id="group-prep-done-view" class="screen-body screen-body--center" hidden>
+        <p class="phase-label">Prep done</p>
+        <svg class="done-check" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+        <p id="group-prep-done-topic" class="topic-reminder"></p>
+        <div class="timer-controls">
+          <button id="group-begin-speak" class="btn btn--primary btn--large" type="button">Start speaking</button>
+        </div>
+      </div>
+
+      <div id="group-next-view" class="screen-body screen-body--center" hidden>
+        <svg class="done-check" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+        <p id="group-turn-done-name" class="done-heading"></p>
+
+        <p class="rating-hint">Room: rate this speech</p>
+        <div class="rating-row" role="group" aria-label="Rate this speech">
+          <button id="group-rate-up" class="rating-btn rating-btn--up rating-btn--counter" type="button" aria-label="Add a thumbs up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3z"></path><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+            <span id="group-rate-up-count" class="rating-btn__count">0</span>
+          </button>
+          <button id="group-rate-down" class="rating-btn rating-btn--down rating-btn--counter" type="button" aria-label="Add a thumbs down">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3z"></path><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+            <span id="group-rate-down-count" class="rating-btn__count">0</span>
+          </button>
+        </div>
+
+        <button id="group-next" class="btn btn--primary btn--large" type="button">Next person</button>
+      </div>
+
+      <div id="group-round-end-view" class="screen-body screen-body--center" hidden>
+        <p class="done-heading">Round complete. Go again?</p>
+        <div class="timer-controls">
+          <button id="group-again" class="btn btn--primary" type="button">Start another round</button>
+          <button id="group-end" class="btn btn--ghost" type="button">End session</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="screen-settings" class="screen" aria-label="Settings">
+    <header class="screen-header">
+      <button class="icon-btn" type="button" data-back="home" aria-label="Back to home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      </button>
+      <h2 class="screen-title">Settings</h2>
+      <span class="screen-header__spacer" aria-hidden="true"></span>
+    </header>
+
+    <div class="screen-body screen-body--scroll">
+      <div class="field-block">
+        <span class="field-block__label">Prep time</span>
+        <div class="duration-input">
+          <label class="duration-input__group">
+            <input id="settings-prep-min" class="text-input text-input--num" type="number" min="0" max="59" inputmode="numeric" />
+            <span class="duration-input__unit">min</span>
+          </label>
+          <label class="duration-input__group">
+            <input id="settings-prep-sec" class="text-input text-input--num" type="number" min="0" max="59" inputmode="numeric" />
+            <span class="duration-input__unit">sec</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <span class="field-block__label">Speak / journal time</span>
+        <div class="duration-input">
+          <label class="duration-input__group">
+            <input id="settings-speak-min" class="text-input text-input--num" type="number" min="0" max="59" inputmode="numeric" />
+            <span class="duration-input__unit">min</span>
+          </label>
+          <label class="duration-input__group">
+            <input id="settings-speak-sec" class="text-input text-input--num" type="number" min="0" max="59" inputmode="numeric" />
+            <span class="duration-input__unit">sec</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field-block">
+        <span class="field-block__label">Categories</span>
+        <p class="field-block__hint">Toggle which categories topics are drawn from in both Solo and Group.</p>
+        <div id="settings-categories" class="category-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONFIRM MODAL ============ -->
+  <div id="confirm-modal" class="modal-scrim" hidden>
+    <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+      <p id="confirm-title" class="modal__title">Leave this session?</p>
+      <p id="confirm-body" class="modal__body">Your timer is running. Going back will end it.</p>
+      <div class="modal__actions">
+        <button id="confirm-cancel" class="btn btn--ghost" type="button">Stay</button>
+        <button id="confirm-ok" class="btn btn--danger" type="button">Leave</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="topics.js"></script>
+<script src="storage.js"></script>
+<script src="timer.js"></script>
+<script src="audio.js"></script>
+<script src="waggle-app.js"></script>
+</body>
+</html>
